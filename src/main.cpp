@@ -222,18 +222,27 @@ int main() {
                 float ghostKeyframeValue = graph.screenPosToCoord(ghostKeyframePos).y;
                 KeyFrame newKeyframe = { ghostKeyframeFrame, ghostKeyframeValue, 0.0f };
 
-                int newKeyframeIndex = 0;
+                int leftIndex = 0;
+                int rightIndex = keyframes.size();
                 for (int i = 0; i < keyframes.size(); i++) {
                     const KeyFrame& keyframe = keyframes[i];
+
                     if (keyframe.frame == newKeyframe.frame) {
-                        newKeyframeIndex = -1;
+                        leftIndex = -1;
+                        rightIndex = keyframes.size();
                         break;
                     }
-                    if (keyframe.frame > newKeyframe.frame) {
-                        newKeyframeIndex = i;
-                        break;
-                    }
+
+                    if (keyframe.frame <= newKeyframe.frame)
+                        leftIndex = i;
+                    if (keyframe.frame >= newKeyframe.frame && i < rightIndex)
+                        rightIndex = i;
                 }
+
+                int newKeyframeIndex = -1;
+                if (leftIndex != -1 || rightIndex != keyframes.size())
+                    newKeyframeIndex = rightIndex;
+
                 if (newKeyframeIndex != -1) {
                     keyframes.insert(keyframes.begin() + newKeyframeIndex, newKeyframe);
                     selectedKeyframe = &keyframes[newKeyframeIndex];
