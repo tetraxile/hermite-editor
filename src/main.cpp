@@ -9,18 +9,19 @@
 #include "rcamera.h"
 
 int main() {
-    const int screenWidth = 1600;
-    const int screenHeight = 900;
+    int screenWidth = 1600;
+    int screenHeight = 900;
 
-    // SetConfigFlags(FLAG_WINDOW_RESIZABLE);
+    SetConfigFlags(FLAG_WINDOW_RESIZABLE);
     SetConfigFlags(FLAG_MSAA_4X_HINT);
+    SetWindowMinSize(500, 500);
     InitWindow(screenWidth, screenHeight, "hermite animation editor");
 
     SetTargetFPS(60);
 
     const Font font = LoadFontEx("../assets/SourceCodePro-Regular.ttf", 25, nullptr, 0);
 
-    Graph graph(font);
+    Graph graph(font, screenWidth, screenHeight);
     
     std::vector<KeyFrame> keyframes;
     KeyFrame* selectedKeyframe = nullptr;
@@ -39,76 +40,86 @@ int main() {
 
     std::vector<Button> buttons;
 
-    // timeline frame count buttons
-    buttons.push_back({ font, "+", { graph.right + 30, graph.bottom - 20 }, { 20, 20 },
-        [&graph](){
-            graph.frameCount++;
-            graph.frameWidth = graph.width / graph.frameCount;
-        }
-    });
-    buttons.push_back({ font, "-", { graph.right + 30, graph.bottom + 20 }, { 20, 20 },
-        [&graph](){
-            if (graph.frameCount > 0) {
-                graph.frameCount--;
-                graph.frameWidth = graph.width / graph.frameCount;
-            }
-        }
-    });
+    Button frameCountUpButton = { font, "+", { graph.right + 30, graph.bottom - 20 }, { 20, 20 } };
+    Button frameCountDownButton = { font, "-", { graph.right + 30, graph.bottom + 20 }, { 20, 20 } };
 
-    // "add keyframe" button
-    buttons.push_back({ font, "Add keyframe", { 100, 30 }, { 0, 0 }, [](){} });
-    Button* addButton = &buttons.back();
-
-    // "delete keyframe" button
-    buttons.push_back({ font, "Delete selected keyframe", { buttons.back().pos.x + buttons.back().size.x + 20, 30 }, { 0, 0 },
-        [&keyframes, &selectedKeyframe, &isClickingNewKeyframe](){
-            isClickingNewKeyframe = false;
-            for (int i = 0; i < keyframes.size(); i++) {
-                KeyFrame& keyframe = keyframes[i];
-                if (&keyframe == selectedKeyframe) {
-                    selectedKeyframe = nullptr;
-                    keyframes.erase(keyframes.begin() + i);
-                    break;
-                }
-            }
-        }
-    });
-    Button* deleteButton = &buttons.back();
-    // deleteButton->disable();
-    addButton->onClick = [&isClickingNewKeyframe, &selectedKeyframe, deleteButton](){
-        isClickingNewKeyframe = true;
-        selectedKeyframe = nullptr;
-        // deleteButton->disable();
+    Button addButton = { font, "Add keyframe", { 100, 30 }, { 0, 0 } };
+    Button deleteButton = { font, "Delete selected keyframe", { addButton.pos.x + addButton.size.x + 20, 30 }, { 0, 0 } };
+    Button clearButton = { font, "Clear all keyframes", { deleteButton.pos.x + deleteButton.size.x + 20, 30 }, { 0, 0 } };
+    Button copyButton = { font, "Copy to clipboard", { clearButton.pos.x + clearButton.size.x + 20, 30 }, { 0, 0 } };
+    
+    frameCountUpButton.onClick = [&graph](){
+        graph.frameCount++;
+        graph.frameWidth = graph.width / graph.frameCount;
     };
 
-    // "clear all keyframes" button
-    buttons.push_back({ font, "Clear all keyframes", { buttons.back().pos.x + buttons.back().size.x + 20, 30 }, { 0, 0 },
-        [&keyframes, &selectedKeyframe, &isClickingNewKeyframe, deleteButton](){
-            isClickingNewKeyframe = false;
-            selectedKeyframe = nullptr;
-            keyframes.clear();
-            // deleteButton->disable();
-        }
-    });
+    frameCountUpButton.onUpdate = [&graph](Button& thiz){
+        thiz.pos = { graph.right + 30, graph.bottom - 20 };
+    };
 
-    // "copy to clipboard" button
-    buttons.push_back({ font, "Copy to clipboard", { buttons.back().pos.x + buttons.back().size.x + 20, 30 }, { 0, 0 },
-        [keyframes](){
-            if (keyframes.empty()) return;
-            std::string output = "a";
-            for (const KeyFrame& keyframe : keyframes) {
-                std::string addition = format("<KeyFrame Frame=\"%d\" Value=\"%f\" Slope=\"%f\"/>\n", keyframe.frame, keyframe.value, keyframe.slope);
-                output.pop_back();
-                output.append(addition);
-            }
-            SetClipboardText(output.c_str());
+    frameCountDownButton.onClick = [&graph](){
+        if (graph.frameCount > 0) {
+            graph.frameCount--;
+            graph.frameWidth = graph.width / graph.frameCount;
         }
-    });
+    };
+
+    frameCountDownButton.onUpdate = [&graph](Button& thiz){
+        thiz.pos = { graph.right + 30, graph.bottom + 20 };
+    };
+
+    addButton.onClick = [&isClickingNewKeyframe, &selectedKeyframe, deleteButton](){
+        isClickingNewKeyframe = true;
+        selectedKeyframe = nullptr;
+    };
+
+    deleteButton.onClick = [&keyframes, &selectedKeyframe, &isClickingNewKeyframe](){
+        isClickingNewKeyframe = false;
+        for (int i = 0; i < keyframes.size(); i++) {
+            KeyFrame& keyframe = keyframes[i];
+            if (&keyframe == selectedKeyframe) {
+                selectedKeyframe = nullptr;
+                keyframes.erase(keyframes.begin() + i);
+                break;
+            }
+        }
+    };
+
+    clearButton.onClick = [&keyframes, &selectedKeyframe, &isClickingNewKeyframe, deleteButton](){
+        isClickingNewKeyframe = false;
+        selectedKeyframe = nullptr;
+        keyframes.clear();
+    };
+
+    copyButton.onClick = [keyframes](){
+        if (keyframes.empty()) return;
+        std::string output = "a";
+        for (const KeyFrame& keyframe : keyframes) {
+            std::string addition = format("<KeyFrame Frame=\"%d\" Value=\"%f\" Slope=\"%f\"/>\n", keyframe.frame, keyframe.value, keyframe.slope);
+            output.pop_back();
+            output.append(addition);
+        }
+        SetClipboardText(output.c_str());
+    };
+    
+    buttons.push_back(addButton);
+    buttons.push_back(deleteButton);
+    buttons.push_back(clearButton);
+    buttons.push_back(copyButton);
+    buttons.push_back(frameCountUpButton);
+    buttons.push_back(frameCountDownButton);
     
     
     while (!WindowShouldClose()) {
         // Update
         //----------------------------------------------------------------------------------
+
+        if (IsWindowResized()) {
+            screenWidth = GetScreenWidth();
+            screenHeight = GetScreenHeight();
+
+            graph.resize(screenWidth, screenHeight);
+        }
 
         Vector2 mousePos = GetMousePosition();
 
@@ -125,7 +136,6 @@ int main() {
                     draggingKeyframe = nullptr;
                     selectedKeyframeControl = KeyFrame::Control::NONE;
                     keyframePixelsMoved = 0.0f;
-                    // deleteButton->enable();
                     break;
                 }
             }
@@ -134,7 +144,6 @@ int main() {
         // deselect keyframe if it goes off screen
         if (selectedKeyframe != nullptr && selectedKeyframe->frame > graph.frameCount) {
             selectedKeyframe = nullptr;
-            // deleteButton->disable();
         }
 
         // control selected keyframe
@@ -229,7 +238,6 @@ int main() {
                     keyframes.insert(keyframes.begin() + newKeyframeIndex, newKeyframe);
                     selectedKeyframe = &keyframes[newKeyframeIndex];
                     isClickingNewKeyframe = false;
-                    // deleteButton->enable();
                 }
             }
         }
@@ -273,8 +281,6 @@ int main() {
                 DrawRectangleV(textTopCenter - Vector2 { textSize.x / 2, 0.0f }, textSize, GRAY);
                 DrawTextTopCenter(font, text, textTopCenter + Vector2 { 0.0f, padding.y }, WHITE);
             }
-
-            // printf("deleteButton.state: %d (%p)\n", deleteButton->state, deleteButton);
 
             // draw buttons
             for (Button& button : buttons) {

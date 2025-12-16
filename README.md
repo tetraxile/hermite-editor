@@ -21,6 +21,7 @@ When run, the program expects the working directory to be `build/`, as it looks 
 Most interactions just use left click, the only exceptions are:
 * If `SHIFT` is held while moving a keyframe up or down, or moving a slope control, the values associated with them will snap to multiples of 0.1.
 * Right clicking anywhere will deselect the current keyframe, or cancel the `Add keyframe` action.
+* Pressing `ESCAPE` will terminate the program.
 
 ## Dependencies
 

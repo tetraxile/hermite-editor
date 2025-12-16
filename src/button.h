@@ -15,7 +15,7 @@ struct Button {
         DISABLED,
     };
 
-    Button(const Font& font, const std::string& text, Vector2 pos, Vector2 sizeOpt, std::function<void()> activate) : font(font), pos(pos), text(text), onClick(activate) {
+    Button(const Font& font, const std::string& text, Vector2 pos, Vector2 sizeOpt) : font(font), pos(pos), text(text) {
         float spacing = 1.0f;
         Vector2 textSize = MeasureTextEx(font, text.c_str(), font.baseSize, spacing);
         size.x = sizeOpt.x == 0 ? textSize.x + 20.0f : sizeOpt.x;
@@ -39,6 +39,8 @@ struct Button {
     }
 
     void update(const Vector2& mousePos) {
+        onUpdate(*this);
+
         if (state == State::DISABLED) return;
 
         if (isClicked(mousePos)) {
@@ -66,7 +68,8 @@ struct Button {
     Vector2 pos;
     Vector2 size;
     std::string text;
-    std::function<void()> onClick;
+    std::function<void()> onClick = [](){};
+    std::function<void(Button&)> onUpdate = [](Button& thiz){};
 
 private:
     void unclick() {

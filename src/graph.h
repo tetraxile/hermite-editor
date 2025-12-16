@@ -8,7 +8,7 @@
 struct KeyFrame;
 
 struct Graph {
-    Graph(const Font& font) : font(font) {}
+    Graph(const Font& font, int screenWidth, int screenHeight) : font(font), bottom(screenHeight - 200.0f), right(screenWidth - 100.0f) {}
 
     const Vector2 coordToScreenPos(const Vector2& coord) const {
         float xPos = left + coord.x * frameWidth;
@@ -22,24 +22,34 @@ struct Graph {
         return { xCoord, yCoord };
     }
 
+    void resize(int screenWidth, int screenHeight) {
+        bottom = screenHeight - 200.0f;
+        right = screenWidth - 100.0f;
+        width = right - left;
+        height = bottom - top;
+        yTickHeight = height / yTickCount;
+        size = { width, height };
+        frameWidth = width / frameCount;
+    }
+
     void draw(const std::vector<KeyFrame>& keyframes) const;
 
     const Font& font;
 
     const float top = 100.0f;
-    const float bottom = 700.0f;
     const float left = 100.0f;
-    const float right = 1500.0f;
+    float bottom;
+    float right;
     const float yRange = 2.0f;
 
-    const float width = right - left;
-    const float height = bottom - top;
+    float width = right - left;
+    float height = bottom - top;
 
     const int yTickCount = 20;
-    const float yTickHeight = height / yTickCount;
+    float yTickHeight = height / yTickCount;
     
     const Vector2 topLeft = { left, top };
-    const Vector2 size = { width, height };
+    Vector2 size = { width, height };
     
     int frameCount = 30;
     float frameWidth = width / frameCount;
