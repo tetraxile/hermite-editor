@@ -70,16 +70,13 @@ void Graph::draw(const std::vector<KeyFrame>& keyframes) const {
 
     // draw hermite interpolation
     if (keyframes.empty()) return;
-    float prevValue = GetInterpolatedValue(keyframes, 0.0f);
     const float step = 1.0f;
     for (float xPos = left + step; xPos < right + step / 2 && xPos < keyframes.back().getScreenPos(*this).x; xPos += step) {
         float interpFrame = screenPosToCoord({ xPos, 0.0f }).x;
         float interpValue = GetInterpolatedValue(keyframes, interpFrame);
         
         float yPos = coordToScreenPos({ 0.0f, interpValue }).y;
-        float prevYPos = coordToScreenPos({ 0.0f, prevValue }).y;
-        DrawLineEx({ xPos - step, prevYPos }, { xPos, yPos }, 2, ColorAlpha(BLUE, 0.5f));
 
-        prevValue = interpValue;
+        DrawCircleV({ xPos, yPos }, 2.0f, ColorAlpha(GREEN, 0.5f));
     }
 }
