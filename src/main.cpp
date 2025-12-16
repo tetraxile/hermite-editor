@@ -159,12 +159,12 @@ int main() {
             Vector2 leftControlPos = selectedKeyframe->getSlopeControlPos(graph, KeyFrame::Control::LEFT);
             Vector2 rightControlPos = selectedKeyframe->getSlopeControlPos(graph, KeyFrame::Control::RIGHT);
 
-            if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && IsPointInCircle(mousePos, leftControlPos, KeyFrame::RADIUS)) {
+            if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && IsPointInCircle(mousePos, leftControlPos, KeyFrame::RADIUS * 2)) {
                 selectedKeyframeControl = KeyFrame::Control::LEFT;
                 draggingKeyframe = nullptr;
                 keyframePixelsMoved = 0.0f;
             }
-            if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && IsPointInCircle(mousePos, rightControlPos, KeyFrame::RADIUS)) {
+            if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && IsPointInCircle(mousePos, rightControlPos, KeyFrame::RADIUS * 2)) {
                 selectedKeyframeControl = KeyFrame::Control::RIGHT;
                 draggingKeyframe = nullptr;
                 keyframePixelsMoved = 0.0f;
@@ -173,10 +173,10 @@ int main() {
             // move the relevant control
 
             if (draggingKeyframe != nullptr) {
-                if (keyframePixelsMoved < KeyFrame::RADIUS * 2)
+                if (keyframePixelsMoved < 10)
                     keyframePixelsMoved = abs(draggingKeyframe->getScreenPos(graph).y - mousePos.y);
 
-                if (keyframePixelsMoved >= KeyFrame::RADIUS * 2) {
+                if (keyframePixelsMoved >= 10) {
                     if (IsKeyDown(KEY_LEFT_SHIFT) || IsKeyDown(KEY_RIGHT_SHIFT)) {
                         int tickIdx = (mousePos.y - graph.top) / graph.height * graph.yTickCount + 0.5f;
                         draggingKeyframe->value = graph.screenPosToCoord({ 0, graph.top + tickIdx * graph.yTickHeight }).y;

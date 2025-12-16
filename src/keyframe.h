@@ -24,7 +24,7 @@ struct KeyFrame {
 
     bool isClicked(const Graph& graph, const Vector2& mousePos) const {
         Vector2 screenPos = getScreenPos(graph);
-        return IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && frame <= graph.frameCount && IsPointInCircle(mousePos, getScreenPos(graph), RADIUS);
+        return IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && frame <= graph.frameCount && IsPointInCircle(mousePos, getScreenPos(graph), RADIUS * 2);
     }
 
     const Vector2 getSlopeControlPos(const Graph& graph, Control control) const {
