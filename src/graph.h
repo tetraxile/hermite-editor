@@ -1,38 +1,22 @@
 #pragma once
 
+#include "keyframe.h"
+
 #include <vector>
 
 #include "raylib.h"
 #include "rcamera.h"
 
-struct KeyFrame;
-
 struct Graph {
-    Graph(const Font& font, int screenWidth, int screenHeight) : font(font), bottom(screenHeight - 200.0f), right(screenWidth - 100.0f) {}
+    Graph(const Font& font, int screenWidth, int screenHeight);
 
-    const Vector2 coordToScreenPos(const Vector2& coord) const {
-        float xPos = left + coord.x * frameWidth;
-        float yPos = bottom - coord.y * height / yRange;
-        return { xPos, yPos };
-    }
+    const Vector2 coordToScreenPos(const Vector2& coord) const;
+    const Vector2 screenPosToCoord(const Vector2& screenPos) const;
 
-    const Vector2 screenPosToCoord(const Vector2& screenPos) const {
-        float xCoord = (screenPos.x - left) / frameWidth;
-        float yCoord = (bottom - screenPos.y) / height * yRange;
-        return { xCoord, yCoord };
-    }
-
-    void resize(int screenWidth, int screenHeight) {
-        bottom = screenHeight - 200.0f;
-        right = screenWidth - 100.0f;
-        width = right - left;
-        height = bottom - top;
-        yTickHeight = height / yTickCount;
-        size = { width, height };
-        frameWidth = width / frameCount;
-    }
-
-    void draw(const std::vector<KeyFrame>& keyframes) const;
+    void resize(int screenWidth, int screenHeight);
+    void draw() const;
+    void drawKeyframes() const;
+    void update(const Vector2& mousePos);
 
     const Font& font;
 
@@ -53,4 +37,13 @@ struct Graph {
     
     int frameCount = 30;
     float frameWidth = width / frameCount;
+
+    std::vector<KeyFrame> keyframes;
+    KeyFrame* selectedKeyframe = nullptr;
+    KeyFrame* draggingKeyframe = nullptr;
+    float keyframePixelsMoved = 0.0f;
+    KeyFrame::Control selectedKeyframeControl = KeyFrame::Control::NONE;
+
+    Vector2 ghostKeyframePos;
+    bool isClickingNewKeyframe = false;
 };

@@ -15,52 +15,16 @@ struct Button {
         DISABLED,
     };
 
-    Button(const Font& font, const std::string& text, Vector2 pos, Vector2 sizeOpt) : font(font), pos(pos), text(text) {
-        float spacing = 1.0f;
-        Vector2 textSize = MeasureTextEx(font, text.c_str(), font.baseSize, spacing);
-        size.x = sizeOpt.x == 0 ? textSize.x + 20.0f : sizeOpt.x;
-        size.y = sizeOpt.y == 0 ? textSize.y + 10.0f : sizeOpt.y;
-    }
-
-    void draw() const {
-        // if (text == "Delete selected keyframe") printf("Button::draw: %d\n", state);
-
-        Color bgColor, fgColor;
-        switch (state) {
-        case State::IDLE:     bgColor = BLUE;                       fgColor = WHITE;                   break;
-        case State::CLICKED:  bgColor = DARKBLUE;                   fgColor = WHITE;                   break;
-        case State::DISABLED: bgColor = ColorTint(DARKBLUE, GRAY);  fgColor = ColorTint(WHITE, GRAY);  break;
-        }
-
-
-
-        DrawRectangleV(pos, size, bgColor);
-        DrawTextCenter(font, text, { pos.x + size.x / 2, pos.y + size.y / 2 }, fgColor);
-    }
-
-    void update(const Vector2& mousePos) {
-        onUpdate(*this);
-
-        if (state == State::DISABLED) return;
-
-        if (isClicked(mousePos)) {
-            click();
-        }
-        if (IsMouseButtonReleased(MOUSE_BUTTON_LEFT)) {
-            unclick();
-        }
-    }
+    Button(const Font& font, const std::string& text, Vector2 pos, Vector2 sizeOpt);
+    void draw() const;
+    void update(const Vector2& mousePos);
 
     void disable() {
-        // printf("Button::disable (state: %d -> ", state);
         state = State::DISABLED;
-        // printf("%d)\n", state);
     }
 
     void enable() {
-        // printf("Button::enable (state: %d -> ", state);
         if (state == State::DISABLED) state = State::IDLE;
-        // printf("%d)\n", state);
     }
 
     State state = State::IDLE;
@@ -73,7 +37,6 @@ struct Button {
 
 private:
     void unclick() {
-        // printf("Button::unclick\n");
         if (state != State::DISABLED) state = State::IDLE;
     }
 
