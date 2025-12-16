@@ -12,33 +12,53 @@ struct Button {
     enum class State {
         IDLE,
         CLICKED,
+        DISABLED,
     };
 
     Button(const Font& font, const std::string& text, Vector2 pos, Vector2 sizeOpt, std::function<void()> activate) : font(font), pos(pos), text(text), onClick(activate) {
         float spacing = 1.0f;
         Vector2 textSize = MeasureTextEx(font, text.c_str(), font.baseSize, spacing);
-        size.x = sizeOpt.x == 0 ? textSize.x + 10.0f : sizeOpt.x;
-        size.y = sizeOpt.y == 0 ? textSize.y + 4.0f : sizeOpt.y;
+        size.x = sizeOpt.x == 0 ? textSize.x + 20.0f : sizeOpt.x;
+        size.y = sizeOpt.y == 0 ? textSize.y + 10.0f : sizeOpt.y;
     }
 
     void draw() const {
-        Color bgColor;
+        // if (text == "Delete selected keyframe") printf("Button::draw: %d\n", state);
+
+        Color bgColor, fgColor;
         switch (state) {
-        case State::IDLE:     bgColor = GRAY;      break;
-        case State::CLICKED:  bgColor = DARKGRAY;  break;
+        case State::IDLE:     bgColor = BLUE;                       fgColor = WHITE;                   break;
+        case State::CLICKED:  bgColor = DARKBLUE;                   fgColor = WHITE;                   break;
+        case State::DISABLED: bgColor = ColorTint(DARKBLUE, GRAY);  fgColor = ColorTint(WHITE, GRAY);  break;
         }
 
+
+
         DrawRectangleV(pos, size, bgColor);
-        DrawTextCenter(font, text, { pos.x + size.x / 2, pos.y + size.y / 2 }, WHITE);
+        DrawTextCenter(font, text, { pos.x + size.x / 2, pos.y + size.y / 2 }, fgColor);
     }
 
     void update(const Vector2& mousePos) {
+        if (state == State::DISABLED) return;
+
         if (isClicked(mousePos)) {
             click();
         }
         if (IsMouseButtonReleased(MOUSE_BUTTON_LEFT)) {
-            reset();
+            unclick();
         }
+    }
+
+    void disable() {
+        // printf("Button::disable (state: %d -> ", state);
+        state = State::DISABLED;
+        // printf("%d)\n", state);
+    }
+
+    void enable() {
+        // printf("Button::enable (state: %d -> ", state);
+        if (state == State::DISABLED) state = State::IDLE;
+        // printf("%d)\n", state);
     }
 
     State state = State::IDLE;
@@ -49,8 +69,9 @@ struct Button {
     std::function<void()> onClick;
 
 private:
-    void reset() {
-        state = State::IDLE;
+    void unclick() {
+        // printf("Button::unclick\n");
+        if (state != State::DISABLED) state = State::IDLE;
     }
 
     void click() {

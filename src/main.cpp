@@ -1,45 +1,12 @@
-#include "raylib.h"
-#include "rcamera.h"
-
 #include "graph.h"
 #include "button.h"
 #include "keyframe.h"
 #include "utils.h"
+
 #include <cstdlib>
 
-
-float HermiteInterpolate(float y_0, float y_1, float m_0, float m_1, float diff, float weight)
-{
-    float result;
-
-    result = y_0 + (y_0 - y_1) * (2 * weight - 3) * weight * weight;
-    result += (diff * (weight - 1)) * (m_0 * (weight - 1) + m_1 * weight);
-
-    return result;
-}
-
-// credit to https://github.com/gdkchan/SPICA/blob/42c4181e198b0fd34f0a567345ee7e75b54cb58b/SPICA/Formats/CtrH3D/Animation/H3DFloatKeyFrameGroup.cs
-float GetInterpolatedValue(const std::vector<KeyFrame>& keyframes, float frame) {
-    if (keyframes.size() == 0) return 0;
-    if (keyframes.size() == 1) return keyframes[0].value;
-
-    const KeyFrame* leftKeyframe = &keyframes.front();
-    const KeyFrame* rightKeyframe = &keyframes.back();
-
-    for (const KeyFrame& keyframe : keyframes) {
-        if (keyframe.frame <= frame)
-            leftKeyframe = &keyframe;
-        if (keyframe.frame >= frame && keyframe.frame < rightKeyframe->frame)
-            rightKeyframe = &keyframe;
-    }
-
-    if (leftKeyframe->frame == rightKeyframe->frame) return leftKeyframe->value;
-
-    float frameDiff = frame - leftKeyframe->frame;
-    float weight = frameDiff / (rightKeyframe->frame - leftKeyframe->frame);
-
-    return HermiteInterpolate(leftKeyframe->value, rightKeyframe->value, leftKeyframe->slope, rightKeyframe->slope, frameDiff, weight);
-}
+#include "raylib.h"
+#include "rcamera.h"
 
 int main() {
     const int screenWidth = 1600;
@@ -89,15 +56,11 @@ int main() {
     });
 
     // "add keyframe" button
-    buttons.push_back({ font, "Add keyframe", { 100, 30 }, { 0, 0 },
-        [&isClickingNewKeyframe, &selectedKeyframe](){
-            isClickingNewKeyframe = true;
-            selectedKeyframe = nullptr;
-        }
-    });
+    buttons.push_back({ font, "Add keyframe", { 100, 30 }, { 0, 0 }, [](){} });
+    Button* addButton = &buttons.back();
 
     // "delete keyframe" button
-    buttons.push_back({ font, "Delete keyframe", { buttons.back().pos.x + buttons.back().size.x + 20, 30 }, { 0, 0 },
+    buttons.push_back({ font, "Delete selected keyframe", { buttons.back().pos.x + buttons.back().size.x + 20, 30 }, { 0, 0 },
         [&keyframes, &selectedKeyframe, &isClickingNewKeyframe](){
             isClickingNewKeyframe = false;
             for (int i = 0; i < keyframes.size(); i++) {
@@ -110,10 +73,28 @@ int main() {
             }
         }
     });
+    Button* deleteButton = &buttons.back();
+    // deleteButton->disable();
+    addButton->onClick = [&isClickingNewKeyframe, &selectedKeyframe, deleteButton](){
+        isClickingNewKeyframe = true;
+        selectedKeyframe = nullptr;
+        // deleteButton->disable();
+    };
+
+    // "clear all keyframes" button
+    buttons.push_back({ font, "Clear all keyframes", { buttons.back().pos.x + buttons.back().size.x + 20, 30 }, { 0, 0 },
+        [&keyframes, &selectedKeyframe, &isClickingNewKeyframe, deleteButton](){
+            isClickingNewKeyframe = false;
+            selectedKeyframe = nullptr;
+            keyframes.clear();
+            // deleteButton->disable();
+        }
+    });
 
     // "copy to clipboard" button
     buttons.push_back({ font, "Copy to clipboard", { buttons.back().pos.x + buttons.back().size.x + 20, 30 }, { 0, 0 },
         [keyframes](){
+            if (keyframes.empty()) return;
             std::string output = "a";
             for (const KeyFrame& keyframe : keyframes) {
                 std::string addition = format("<KeyFrame Frame=\"%d\" Value=\"%f\" Slope=\"%f\"/>\n", keyframe.frame, keyframe.value, keyframe.slope);
@@ -144,13 +125,17 @@ int main() {
                     draggingKeyframe = nullptr;
                     selectedKeyframeControl = KeyFrame::Control::NONE;
                     keyframePixelsMoved = 0.0f;
+                    // deleteButton->enable();
                     break;
                 }
             }
         }
 
         // deselect keyframe if it goes off screen
-        if (selectedKeyframe != nullptr && selectedKeyframe->frame > graph.frameCount) selectedKeyframe = nullptr;
+        if (selectedKeyframe != nullptr && selectedKeyframe->frame > graph.frameCount) {
+            selectedKeyframe = nullptr;
+            // deleteButton->disable();
+        }
 
         // control selected keyframe
         if (selectedKeyframe != nullptr) {
@@ -244,6 +229,7 @@ int main() {
                     keyframes.insert(keyframes.begin() + newKeyframeIndex, newKeyframe);
                     selectedKeyframe = &keyframes[newKeyframeIndex];
                     isClickingNewKeyframe = false;
+                    // deleteButton->enable();
                 }
             }
             if (IsMouseButtonPressed(MOUSE_BUTTON_RIGHT)) {
@@ -258,21 +244,7 @@ int main() {
 
             ClearBackground(RAYWHITE);
 
-            graph.draw();
-
-            // draw hermite interpolation
-            float prevValue = GetInterpolatedValue(keyframes, 0.0f);
-            const float step = 1.0f;
-            for (float xPos = graph.left + step; xPos < graph.right + step / 2 && xPos < keyframes.back().getScreenPos(graph).x; xPos += step) {
-                float interpFrame = graph.screenPosToCoord({ xPos, 0.0f }).x;
-                float interpValue = GetInterpolatedValue(keyframes, interpFrame);
-                
-                float yPos = graph.coordToScreenPos({ 0.0f, interpValue }).y;
-                float prevYPos = graph.coordToScreenPos({ 0.0f, prevValue }).y;
-                DrawLineEx({ xPos - step, prevYPos }, { xPos, yPos }, 2, ColorAlpha(BLUE, 0.5f));
-
-                prevValue = interpValue;
-            }
+            graph.draw(keyframes);
 
             // draw ghost keyframe point
             if (isClickingNewKeyframe) {
@@ -283,9 +255,27 @@ int main() {
             for (const KeyFrame& keyframe : keyframes) {
                 keyframe.draw(graph, selectedKeyframe == &keyframe);
             }
-            
+
+            // draw selected keyframe's data
+            {
+                Vector2 textTopCenter = { graph.left + graph.width / 2, graph.bottom + 50.0f };
+                Vector2 padding = { 10.0f, 5.0f };
+
+                std::string text;
+                if (selectedKeyframe != nullptr)
+                    text = format("Selected keyframe:\nFrame: %d\nValue: %.03f\nSlope: %.03f", selectedKeyframe->frame, selectedKeyframe->value, selectedKeyframe->slope);
+                else
+                    text = "Selected keyframe:";
+
+                Vector2 textSize = MeasureTextEx(font, text.c_str(), font.baseSize, 1.0f) + padding * 2;
+                DrawRectangleV(textTopCenter - Vector2 { textSize.x / 2, 0.0f }, textSize, GRAY);
+                DrawTextTopCenter(font, text, textTopCenter + Vector2 { 0.0f, padding.y }, WHITE);
+            }
+
+            // printf("deleteButton.state: %d (%p)\n", deleteButton->state, deleteButton);
+
             // draw buttons
-            for (const Button& button : buttons) {
+            for (Button& button : buttons) {
                 button.draw();
             }
 

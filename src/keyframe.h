@@ -1,11 +1,11 @@
 #pragma once
 
 #include "graph.h"
+#include "utils.h"
 
 #include "raylib.h"
 #include "rcamera.h"
 #include "raymath.h"
-#include "utils.h"
 
 struct KeyFrame {
     enum class Control {
@@ -17,10 +17,6 @@ struct KeyFrame {
     static inline constexpr float RADIUS = 5.0f;
 
     KeyFrame(int frame, float value, float slope) : frame(frame), value(value), slope(slope) {}
-
-    int getFrame() const {
-        return frame;
-    }
 
     const Vector2 getScreenPos(const Graph& graph) const {
         return graph.coordToScreenPos(getPos());
