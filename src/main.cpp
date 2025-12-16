@@ -232,9 +232,11 @@ int main() {
                     // deleteButton->enable();
                 }
             }
-            if (IsMouseButtonPressed(MOUSE_BUTTON_RIGHT)) {
-                isClickingNewKeyframe = false;
-            }
+        }
+
+        if (IsMouseButtonPressed(MOUSE_BUTTON_RIGHT)) {
+            isClickingNewKeyframe = false;
+            selectedKeyframe = nullptr;
         }
 
 
