@@ -36,12 +36,24 @@ float GetInterpolatedValue(const std::vector<KeyFrame>& keyframes, float frame) 
     return HermiteInterpolate(leftKeyframe->value, rightKeyframe->value, leftKeyframe->slope, rightKeyframe->slope, frameDiff, weight);
 }
 
-Graph::Graph(const Font& font, int screenWidth, int screenHeight) : font(font), bottom(screenHeight - 200.0f), right(screenWidth - 100.0f) {        
+Graph::Graph(const Font& font, int screenWidth, int screenHeight) :
+    font(font),
+    bottom(screenHeight - 200.0f),
+    right(screenWidth - 100.0f)
+{        
     keyframes.push_back({ 0,  1.00f, -0.44f });
     keyframes.push_back({ 4,  0.53f, -0.03f });
     keyframes.push_back({ 15, 0.50f,  0.00f });
     keyframes.push_back({ 26, 0.53f,  0.03f });
     keyframes.push_back({ 30, 1.00f,  0.44f });
+
+    yRangeInput = new FloatInput(
+        font,
+        yRange,
+        { left - 15, bottom - yTickCount * yTickHeight },
+        { 0, 0 },
+        FloatInput::cAnchor_Right
+    );
 }
 
 const Vector2 Graph::coordToScreenPos(const Vector2& coord) const {
@@ -92,10 +104,14 @@ void Graph::draw() const {
         DrawTextCenter(font, format("%d", i), { tickPosX, bottom + 25 }, BLACK);
     }
 
+    // draw text box for y-axis range
+    yRangeInput->draw();
+
     // draw ticks next to y-axis
     for (int i = 0; i <= yTickCount; i++) {
         float linePosY = bottom - i * yTickHeight;
         DrawLineEx({ left, linePosY }, { left - 10, linePosY }, 2, GRAY);
+        if (i == yTickCount) break;
         float tickValue = yRange * i / yTickCount;
         DrawTextRightAlign(font, format("%.1f", tickValue), { left - 20, linePosY }, BLACK);
     }
@@ -144,6 +160,9 @@ void Graph::drawKeyframes() const {
 }
 
 void Graph::update(const Vector2& mousePos) {
+    yRangeInput->update(mousePos);
+    yRange = yRangeInput->value;
+
     // update which keyframe is selected
     if (!isClickingNewKeyframe) {
         for (KeyFrame& keyframe : keyframes) {

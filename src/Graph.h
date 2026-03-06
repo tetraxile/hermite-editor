@@ -1,5 +1,6 @@
 #pragma once
 
+#include "FloatInput.h"
 #include "KeyFrame.h"
 
 #include <vector>
@@ -24,7 +25,7 @@ struct Graph {
     const float left = 100.0f;
     float bottom;
     float right;
-    const float yRange = 2.0f;
+    float yRange = 2.0f;
 
     float width = right - left;
     float height = bottom - top;
@@ -46,4 +47,6 @@ struct Graph {
 
     Vector2 ghostKeyframePos;
     bool isClickingNewKeyframe = false;
+
+    FloatInput* yRangeInput = nullptr;
 };

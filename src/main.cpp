@@ -98,20 +98,14 @@ int main() {
     while (!WindowShouldClose()) {
         // Update
         //----------------------------------------------------------------------------------
-
-        if (IsWindowResized()) {
-            screenWidth = GetScreenWidth();
-            screenHeight = GetScreenHeight();
-
-            graph.resize(screenWidth, screenHeight);
-        }
-
+        
         Vector2 mousePos = GetMousePosition();
 
-        // update buttons
-        for (Button& button : buttons) {
+        if (IsWindowResized())
+            graph.resize(GetScreenWidth(), GetScreenHeight());
+
+        for (Button& button : buttons)
             button.update(mousePos);
-        }
 
         graph.update(mousePos);
 
@@ -124,10 +118,8 @@ int main() {
 
             graph.draw();
 
-            // draw buttons
-            for (Button& button : buttons) {
+            for (Button& button : buttons)
                 button.draw();
-            }
 
         EndDrawing();
     }

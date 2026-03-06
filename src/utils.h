@@ -17,6 +17,8 @@ bool IsPointInRect(const Vector2& pointPos, const Vector2& rectPos, const Vector
 
 bool IsPointInCircle(const Vector2& pointPos, const Vector2& circleCenter, float circleRadius);
 
+bool DrawTextAnchor(const Font& font, const std::string& msg, const Vector2& pos, int anchorX, int anchorY, Color color);
+
 void DrawTextCenter(const Font& font, const std::string& msg, const Vector2& pos, Color color);
 
 void DrawTextRightAlign(const Font& font, const std::string& msg, const Vector2& pos, Color color);
