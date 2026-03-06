@@ -8,7 +8,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror")
 include_directories(lib/raylib/src)
 include_directories(src)
 
-set(SOURCES src/main.cpp src/utils.cpp src/graph.cpp src/keyframe.cpp src/button.cpp)
+set(SOURCES src/main.cpp src/utils.cpp src/Graph.cpp src/KeyFrame.cpp src/Button.cpp)
 
 add_executable(${PROJECT_NAME} ${SOURCES})
 

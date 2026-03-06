@@ -1,4 +1,4 @@
-#include "button.h"
+#include "Button.h"
 
 Button::Button(const Font& font, const std::string& text, Vector2 pos, Vector2 sizeOpt) : font(font), pos(pos), text(text) {
     float spacing = 1.0f;

@@ -1,5 +1,5 @@
-#include "keyframe.h"
-#include "graph.h"
+#include "KeyFrame.h"
+#include "Graph.h"
 #include "utils.h"
 
 #include "raylib.h"

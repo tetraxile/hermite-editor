@@ -1,6 +1,6 @@
-#include "graph.h"
-#include "button.h"
-#include "keyframe.h"
+#include "Graph.h"
+#include "Button.h"
+#include "KeyFrame.h"
 #include "utils.h"
 
 #include "raylib.h"
