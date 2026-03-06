@@ -1,4 +1,5 @@
 #include "Button.h"
+#include "raylib.h"
 
 Button::Button(const Font& font, const std::string& text, Vector2 pos, Vector2 sizeOpt) : font(font), pos(pos), text(text) {
     float spacing = 1.0f;
@@ -15,7 +16,7 @@ void Button::draw() const {
     case State::DISABLED: bgColor = ColorTint(DARKBLUE, GRAY);  fgColor = ColorTint(WHITE, GRAY);  break;
     }
 
-    DrawRectangleV(pos, size, bgColor);
+    DrawRectangleRounded({ pos.x, pos.y, size.x, size.y }, 1.0f, 10, bgColor);
     DrawTextCenter(font, text, { pos.x + size.x / 2, pos.y + size.y / 2 }, fgColor);
 }
 

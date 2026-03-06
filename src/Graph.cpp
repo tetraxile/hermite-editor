@@ -148,13 +148,17 @@ void Graph::drawKeyframes() const {
         Vector2 padding = { 10.0f, 5.0f };
 
         std::string text;
-        if (selectedKeyframe != nullptr)
+        float rounding;
+        if (selectedKeyframe != nullptr) {
             text = format("Selected keyframe:\nFrame: %d\nValue: %.03f\nSlope: %.03f", selectedKeyframe->frame, selectedKeyframe->value, selectedKeyframe->slope);
-        else
+            rounding = 0.3f;
+        } else {
             text = "Selected keyframe:";
+            rounding = 1.0f;
+        }
 
         Vector2 textSize = MeasureTextEx(font, text.c_str(), font.baseSize, 1.0f) + padding * 2;
-        DrawRectangleV(textTopCenter - Vector2 { textSize.x / 2, 0.0f }, textSize, GRAY);
+        DrawRectangleRounded({ textTopCenter.x - textSize.x / 2, textTopCenter.y, textSize.x, textSize.y }, rounding, 10, GRAY);
         DrawTextTopCenter(font, text, textTopCenter + Vector2 { 0.0f, padding.y }, WHITE);
     } 
 }

@@ -19,7 +19,7 @@ FloatInput::FloatInput(const Font& font, float value, Vector2 pos, Vector2 sizeO
 
 void FloatInput::draw() const {
     Vector2 topLeft = { pos.x - (size.x / 2) * (1 + origin.x), pos.y - (size.y / 2) * (1 + origin.y) };
-    DrawRectangleV(topLeft, size, state == State::CLICKED ? GRAY : LIGHTGRAY);
+    DrawRectangleRounded({ topLeft.x, topLeft.y, size.x, size.y }, 1.0f, 10, state == State::CLICKED ? GRAY : LIGHTGRAY);
 
     topLeft.x += padding;
     DrawTextEx(font, text.c_str(), topLeft, font.baseSize, 1.0f, BLACK);

@@ -2,6 +2,7 @@
 
 #include "utils.h"
 
+#include <stdexcept>
 #include <string>
 
 #include "raylib.h"
@@ -53,8 +54,13 @@ private:
 
         state = State::IDLE;
 
-        if (text.empty()) text = "1.0";
-        text = format("%.1f", std::stof(text));
+        float tmp;
+        try {
+            tmp = std::stof(text);
+        } catch (std::invalid_argument) {
+            tmp = 2.0f;
+        }
+        text = format("%.1f", tmp);
         text.pop_back();
         value = std::stof(text);
     }
